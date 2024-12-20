@@ -45,7 +45,7 @@ fuente = pygame.font.Font('freesansbold.ttf', 32)
 texto_x = 10
 texto_y = 10
 fuente_final = pygame.font.Font('freesansbold.ttf', 40)
-
+volumen_global = 0.5
 
 
 
@@ -102,7 +102,7 @@ def mostrar_lore():
     texto_lore_contorno = fuente_lore.render("Lore", True, color_contorno)
 
     # Texto dividido por líneas
-    texto_detalle = "El Infierno ha desatado su furia, enviando legiones de horrores más allá de la imaginación: demonios sedientos de sangre, gritos desgarradores de almas atrapadas, y un aire pesado de desesperación. Ahora, eres doomslayer, enfrentándote a un mal ancestral que no se detendrá hasta consumirlo todo. No puedes huir; la única opción es luchar contra los demonios y contra el propio Infierno, armado con la *poderosa* eres el unico que salvará a toda la humanidad."
+    texto_detalle = "El Infierno ha desatado su furia, enviando legiones de horrores más allá de la imaginación: demonios sedientos de sangre, gritos desgarradores de almas atrapadas, y un aire pesado de desesperación. Ahora, eres Doomslayer, enfrentándote a un mal ancestral que no se detendrá hasta consumirlo todo. No puedes huir; la única opción es luchar contra los demonios y contra el propio Infierno, armado con la *poderosa* eres el unico que salvará a toda la humanidad."
     lineas_detalle = dividir_texto_en_lineas(texto_detalle, pygame.font.Font('fuentes/UnifrakturCook.ttf', 24), 700)
 
     boton_regresar = Boton("Regresar al Menu", (300, 500), (200, 50))
@@ -228,9 +228,10 @@ def dividir_texto_en_lineas(texto, fuente, max_ancho):
 
 
 def menu_principal():
+    global volumen_global
     mixer.music.load("MenuPrincipalJuego.mp3")
     mixer.music.play(-1)
-    mixer.music.set_volume(0.9)
+    mixer.music.set_volume(volumen_global)
 
     # Obtén el tamaño de la pantalla para centrar los botones
     pantalla_ancho, pantalla_alto = pantalla.get_size()
@@ -334,17 +335,23 @@ def mostrar_pantalla_pausa():
 
 # Función para mostrar el menú de opciones
 def mostrar_opciones():
+    global volumen_global
     fuente_opciones = pygame.font.Font('freesansbold.ttf', 50)
     texto_opciones = fuente_opciones.render("Opciones", True, (255, 255, 255))
     pantalla.blit(texto_opciones,
                   (800 // 2 - texto_opciones.get_width() // 2, 100))  # Ajuste en la posición para el título
 
+    volumen = 0.5  # Volumen inicial (50%)
+    fuente_volumen = pygame.font.Font('freesansbold.ttf', 30)
+
     # Anchos de los botones
-    ancho_boton_dificultad = 300
+    ancho_boton_incrementar_volumen = 300
+    ancho_boton_disminuir_volumen = 300
     ancho_boton_menu = 300
 
     # Creación de botones centrados
-    boton_dificultad = Boton("Sonido", ((800 - ancho_boton_dificultad) // 2, 250), (ancho_boton_dificultad, 50))
+    boton_incrementar_volumen = Boton("Aumentar Volumen", ((800 - ancho_boton_incrementar_volumen) // 2, 250), (ancho_boton_incrementar_volumen, 50))
+    boton_disminuir_volumen = Boton("Disminuir Volumen", ((800 - ancho_boton_disminuir_volumen) // 2, 320), (ancho_boton_disminuir_volumen, 50))
     boton_menu_principal = Boton("Menu Principal", ((800 - ancho_boton_menu) // 2, 390), (ancho_boton_menu, 50))
 
     enOpciones = True
@@ -355,17 +362,21 @@ def mostrar_opciones():
                 sys.exit()
 
             if evento.type == pygame.MOUSEBUTTONDOWN:
-                if boton_dificultad.fueClicado(pygame.mouse.get_pos()):
-
-                    enOpciones = False
+                if boton_incrementar_volumen.fueClicado(pygame.mouse.get_pos()):
+                    volumen_global = min(1.0, volumen_global + 0.1)  # Incrementar volumen sin pasar de 1.0
+                    pygame.mixer.music.set_volume(volumen_global)
+                elif boton_disminuir_volumen.fueClicado(pygame.mouse.get_pos()):
+                    volumen_global = max(0.0, volumen_global - 0.1)  # Disminuir volumen sin bajar de 0.0
+                    pygame.mixer.music.set_volume(volumen_global)
                 elif boton_menu_principal.fueClicado(pygame.mouse.get_pos()):
-                    menu_principal()
-                    return "menu"
+                    # Regresar al menú principal
+                    return
 
         posicion_mouse = pygame.mouse.get_pos()
 
         # Actualizar estados de los botones
-        boton_dificultad.actualizar(posicion_mouse)
+        boton_incrementar_volumen.actualizar(posicion_mouse)
+        boton_disminuir_volumen.actualizar(posicion_mouse)
         boton_menu_principal.actualizar(posicion_mouse)
 
         # Dibujar fondo
@@ -375,8 +386,13 @@ def mostrar_opciones():
 
         # Dibujar texto y botones
         pantalla.blit(texto_opciones, (800 // 2 - texto_opciones.get_width() // 2, 100))  # Centro del título
-        boton_dificultad.dibujar(pantalla)
+        boton_incrementar_volumen.dibujar(pantalla)
+        boton_disminuir_volumen.dibujar(pantalla)
         boton_menu_principal.dibujar(pantalla)
+
+        # Mostrar el nivel de volumen
+        texto_volumen = fuente_volumen.render(f"Volumen: {int(volumen_global * 100)}%", True, (255, 255, 255))
+        pantalla.blit(texto_volumen, (800 // 2 - texto_volumen.get_width() // 2, 200))
 
         pygame.display.update()
 
@@ -992,7 +1008,7 @@ def solicitar_nombre_jugador():
 
 
 def juego():
-    global jugador_nombre
+    global jugador_nombre, volumen_global
     resultado = solicitar_nombre_jugador()
     if resultado == "menu":
         return  # Regresar al menú principal
@@ -1003,7 +1019,7 @@ def juego():
     mixer.music.stop()
     mixer.music.load("MusicaFondo.mp3")
     mixer.music.play(-1)
-    mixer.music.set_volume(0.9)
+    mixer.music.set_volume(volumen_global)
     reiniciar_juego()
 
     # Reiniciar las variables del juego
@@ -1309,7 +1325,7 @@ def juego():
 record=[]
 intento = 0
 def Juego_Multijugador():
-    global jugador_nombre, intento,record
+    global jugador_nombre, intento,record, volumen_global
     resultado = solicitar_nombre_jugador()
     if resultado == "menu":
         return  # Regresar al menú principal
@@ -1320,7 +1336,7 @@ def Juego_Multijugador():
     mixer.music.stop()
     mixer.music.load("MusicaFondo.mp3")
     mixer.music.play(-1)
-    mixer.music.set_volume(0.9)
+    mixer.music.set_volume(volumen_global)
     reiniciar_juego()
 
     # Reiniciar las variables del juego
