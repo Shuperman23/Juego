@@ -1345,6 +1345,14 @@ def Juego_Multijugador():
     global enemigo_x, enemigo_y, enemigo_x_cambio, enemigo_y_cambio, estado_explosion, tiempo_explosion
     global indice_imagen, direccion_enemigo, gameover, balas, contador_frames  # Asegurar que se pueda modificar el contador de frames
 
+    # Inicializar las condiciones del juego
+    dificultad = "Pesadilla"
+    velocidad_maxima = float('inf')  # Sin límite de velocidad
+    incremento_velocidad = 0.01  # Aceleración constante
+    total_enemigos = float('inf')  # Enemigos infinitos
+    vidas_default = 1  # Solo una vida
+    en_modificar_dificultad = False
+
     # Reiniciar las estadisicas del juego
     vidas = vidas_default
     puntaje = 0
